@@ -1,0 +1,25 @@
+# Docker Compose para Azure App Service (caso 3).
+# App Service no ejecuta build: las dos imágenes deben existir previamente en el ACR.
+services:
+  ia:
+    image: REPLACE_ACR.azurecr.io/ia:v1
+    environment:
+      GEMINI_API_KEY:
+      GEMINI_MODEL: gemini-2.5-flash
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  chat:
+    image: REPLACE_ACR.azurecr.io/chat:v1
+    depends_on:
+      - ia
+    environment:
+      AI_SERVICE_URL: http://ia:8000
+      DATABASE_PATH: /data/chats.db
+      FLASK_SECRET_KEY:
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${WEBAPP_STORAGE_HOME}/chat:/data
+    restart: unless-stopped

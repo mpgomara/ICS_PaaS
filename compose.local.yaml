@@ -1,0 +1,36 @@
+# Compose de desarrollo local. Sustituye este fichero por compose.yaml solo si se usa Compose fuera de App Service.
+services:
+  ia:
+    build:
+      context: ./ai_service
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:?Set GEMINI_API_KEY in .env before starting}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+    expose:
+      - "8000"
+    networks:
+      - app_net
+    restart: unless-stopped
+
+  chat:
+    build:
+      context: ./chat_service
+    depends_on:
+      - ia
+    environment:
+      AI_SERVICE_URL: http://ia:8000
+      DATABASE_PATH: /data/chats.db
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:?Set FLASK_SECRET_KEY in .env before starting}
+    ports:
+      - "8080:8080"
+    networks:
+      - app_net
+    volumes:
+      - chat_data:/data
+    restart: unless-stopped
+
+networks:
+  app_net:
+
+volumes:
+  chat_data:

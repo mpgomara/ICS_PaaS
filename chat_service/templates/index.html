@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chat Gemini</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h1>Mis chats</h1>
+      <button id="new-chat" class="primary">+ Nuevo chat</button>
+      <ul id="chat-list" aria-label="Conversaciones"></ul>
+    </aside>
+    <main class="conversation">
+      <header><h2 id="chat-title">Selecciona o crea un chat</h2><button id="rename-chat" disabled>Editar título</button></header>
+      <section id="messages" aria-live="polite"></section>
+      <form id="message-form">
+        <label class="sr-only" for="message-input">Mensaje</label>
+        <textarea id="message-input" rows="2" maxlength="8000" placeholder="Escribe un mensaje..." required></textarea>
+        <button id="send-button" class="primary" type="submit">Enviar</button>
+      </form>
+      <p id="status" role="status"></p>
+    </main>
+  </div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
