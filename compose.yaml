@@ -5,15 +5,22 @@ services:
     image: REPLACE_ACR.azurecr.io/ia:v1
     environment:
       GEMINI_API_KEY:
-      GEMINI_MODEL: gemini-2.5-flash
+      GEMINI_MODEL: gemini-3.1-flash-lite
     expose:
       - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     restart: unless-stopped
 
   chat:
     image: REPLACE_ACR.azurecr.io/chat:v1
     depends_on:
-      - ia
+      ia:
+        condition: service_healthy
     environment:
       AI_SERVICE_URL: http://ia:8000
       DATABASE_PATH: /data/chats.db
@@ -22,4 +29,10 @@ services:
       - "8080:8080"
     volumes:
       - ${WEBAPP_STORAGE_HOME}/chat:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     restart: unless-stopped

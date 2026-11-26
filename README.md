@@ -2,7 +2,7 @@
 
 Aplicación PaaS para el **caso 3** de la práctica:
 
-- **Contenedor `chat`:** interfaz web de chat, historial persistente en SQLite, títulos editables y envío de mensajes al contenedor IA.
+- **Contenedor `chat`:** interfaz web de chat, historial persistente en SQLite, títulos editables y eliminables y envío de mensajes al contenedor IA.
 - **Contenedor `ia`:** API privada Flask que recibe mensajes, los convierte en una petición a Gemini y devuelve la respuesta.
 
 Solo `chat` está publicado hacia Internet. `ia` se comunica con `chat` dentro de la red interna de Compose usando `http://ia:8000`. La clave de Gemini se configura como secreto de App Service y no se copia a las imágenes.
@@ -23,7 +23,7 @@ Solo `chat` está publicado hacia Internet. `ia` se comunica con `chat` dentro d
    docker compose -f compose.local.yaml up --build -d
    ```
 
-3. Abre `http://localhost:8080`, crea varios chats, cambia sus títulos y prueba el envío de mensajes.
+3. Abre `http://localhost:8080`, crea varios chats y prueba el envío con Enter (Shift+Enter inserta un salto de línea). Haz doble clic en el título de un chat, en la lista o en la conversación abierta, para editarlo.
 
 4. Comprueba persistencia y logs:
 
@@ -67,7 +67,7 @@ App Service no admite `build` en Compose. Las imágenes se construyen y suben pr
 | Variable | Servicio | Valor local | Valor Azure |
 |---|---|---|---|
 | `GEMINI_API_KEY` | `ia` | `.env` | Secreto de App Service |
-| `GEMINI_MODEL` | `ia` | `.env`, por defecto `gemini-2.5-flash` | App setting |
+| `GEMINI_MODEL` | `ia` | `.env`, por defecto `gemini-3.1-flash-lite` | App setting |
 | `AI_SERVICE_URL` | `chat` | `http://ia:8000` | `http://ia:8000` |
 | `DATABASE_PATH` | `chat` | `/data/chats.db` | `/data/chats.db` |
 | `FLASK_SECRET_KEY` | `chat` | `.env` | Secreto de App Service |

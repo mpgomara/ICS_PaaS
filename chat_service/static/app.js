@@ -36,11 +36,39 @@ async function loadChats() {
   chatList.replaceChildren();
   for (const chat of result.chats) {
     const item = document.createElement("li");
+    const row = document.createElement("div");
+    row.className = "chat-row";
     const button = document.createElement("button");
     button.textContent = chat.title;
     button.className = chat.id === selectedChat ? "selected" : "";
     button.addEventListener("click", () => selectChat(chat.id, chat.title));
-    item.append(button);
+    button.addEventListener("dblclick", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      renameChat(chat.id, chat.title);
+    });
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "delete-chat";
+    deleteButton.textContent = "Eliminar";
+    deleteButton.setAttribute("aria-label", `Eliminar ${chat.title}`);
+    deleteButton.addEventListener("click", async () => {
+      if (!window.confirm(`¿Eliminar "${chat.title}" y sus mensajes?`)) return;
+      try {
+        await api(`/api/chats/${chat.id}`, { method: "DELETE" });
+        if (selectedChat === chat.id) {
+          selectedChat = null;
+          title.textContent = "Selecciona o crea un chat";
+          renameButton.disabled = true;
+          messages.replaceChildren();
+        }
+        await loadChats();
+      } catch (error) {
+        statusLine.textContent = error.message;
+      }
+    });
+    row.append(button, deleteButton);
+    item.append(row);
     chatList.append(item);
   }
 }
@@ -65,19 +93,33 @@ document.querySelector("#new-chat").addEventListener("click", async () => {
   }
 });
 
-renameButton.addEventListener("click", async () => {
-  if (!selectedChat) return;
-  const newTitle = window.prompt("Nuevo título", title.textContent);
+async function renameChat(chatId, currentTitle) {
+  const newTitle = window.prompt("Nuevo título", currentTitle);
   if (newTitle === null) return;
   try {
-    const result = await api(`/api/chats/${selectedChat}`, {
+    const result = await api(`/api/chats/${chatId}`, {
       method: "PATCH",
       body: JSON.stringify({ title: newTitle }),
     });
-    title.textContent = result.title;
+    if (selectedChat === chatId) title.textContent = result.title;
     await loadChats();
   } catch (error) {
     statusLine.textContent = error.message;
+  }
+}
+
+renameButton.addEventListener("click", () => {
+  if (selectedChat) renameChat(selectedChat, title.textContent);
+});
+
+title.addEventListener("dblclick", () => {
+  if (selectedChat) renameChat(selectedChat, title.textContent);
+});
+
+input.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+    event.preventDefault();
+    document.querySelector("#message-form").requestSubmit();
   }
 });
 

@@ -5,9 +5,15 @@ services:
       context: ./ai_service
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY:?Set GEMINI_API_KEY in .env before starting}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
     expose:
       - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     networks:
       - app_net
     restart: unless-stopped
@@ -16,7 +22,8 @@ services:
     build:
       context: ./chat_service
     depends_on:
-      - ia
+      ia:
+        condition: service_healthy
     environment:
       AI_SERVICE_URL: http://ia:8000
       DATABASE_PATH: /data/chats.db
@@ -27,6 +34,12 @@ services:
       - app_net
     volumes:
       - chat_data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     restart: unless-stopped
 
 networks:

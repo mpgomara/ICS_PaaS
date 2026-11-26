@@ -46,7 +46,7 @@ La comunicación comprobada es:
 | `<ACR>.azurecr.io/chat:v1` | `python:3.12-slim` | `chat_service/Dockerfile` | Web, rutas API y SQLite |
 | `<ACR>.azurecr.io/ia:v1` | `python:3.12-slim` | `ai_service/Dockerfile` | Adaptador privado a Gemini |
 
-Se añadieron Flask, Gunicorn y Requests a las dependencias. Gunicorn sirve cada aplicación. Se añadió validación de entradas, límites de longitud, sesiones firmadas por Flask y conexiones SQLite controladas por petición.
+Se añadieron Flask, Gunicorn y Requests a las dependencias. Gunicorn sirve cada aplicación. Se añadió validación de entradas, límites de longitud, sesiones firmadas por Flask y conexiones SQLite controladas por petición. La interfaz permite crear, renombrar y eliminar chats; se pueden renombrar con doble clic tanto desde la lista como desde el título abierto. Enter envía el mensaje y Shift+Enter inserta un salto de línea.
 
 El Dockerfile de `chat`:
 
@@ -87,7 +87,7 @@ Requisitos: Docker Engine y Docker Compose v2, y una clave Gemini válida recié
 
 4. Abre `http://localhost:8080`.
 
-5. Crea al menos dos chats, renombra uno y envía mensajes.
+5. Crea al menos dos chats, renombra uno con doble clic en la lista y otro desde el título de la conversación, y prueba el envío con Enter y los saltos de línea con Shift+Enter.
 
 6. Comprueba salud y persistencia:
 
@@ -121,7 +121,7 @@ services:
     image: REPLACE_ACR.azurecr.io/ia:v1
     environment:
       GEMINI_API_KEY:
-      GEMINI_MODEL: gemini-2.5-flash
+      GEMINI_MODEL: gemini-3.1-flash-lite
     expose:
       - "8000"
     restart: unless-stopped
@@ -141,7 +141,7 @@ services:
     restart: unless-stopped
 ```
 
-Se conserva `depends_on` porque Compose lo acepta localmente, aunque App Service puede ignorarlo; los dos contenedores se encuentran al mismo tiempo y `chat` maneja temporalmente el error si `ia` todavía no está listo.
+Se conserva `depends_on` con una condición de salud local, aunque App Service puede ignorarla; los dos contenedores se encuentran al mismo tiempo y `chat` maneja temporalmente el error si `ia` todavía no está listo. Los healthchecks verifican `/healthz` en ambos contenedores.
 
 ## 6. Despliegue en Azure por consola
 
@@ -238,7 +238,7 @@ az webapp config appsettings set \
   --settings \
     WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
     GEMINI_API_KEY="$GEMINI_KEY" \
-    GEMINI_MODEL="gemini-2.5-flash" \
+    GEMINI_MODEL="gemini-3.1-flash-lite" \
     FLASK_SECRET_KEY="$FLASK_SECRET" \
     AI_SERVICE_URL="http://ia:8000" \
     DATABASE_PATH="/data/chats.db"
